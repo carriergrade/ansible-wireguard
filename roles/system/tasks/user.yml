@@ -1,10 +1,10 @@
-rm ---
-- name: Ensure the root group exists
+---
+- name: "Ensure the root group exists"
   ansible.builtin.group:
     name: "root"
     state: present
 
-- name: Allow sudo group to have passwordless sudo
+- name: "Allow sudo group to have passwordless sudo"
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
@@ -13,7 +13,7 @@ rm ---
     validate: "/usr/sbin/visudo -cf %s"
   when: enable_passwordless_sudo | default(False)
 
-- name: Create a login user
+- name: "Create a login user"
   changed_when: false
   ansible.builtin.user:
     name: "{{ username }}"
@@ -26,57 +26,57 @@ rm ---
     shell: "{{ user_shell }}"
   when: enable_username_creation | default(False)
 
-- name: Ensure group "{{ username }}" exists
+- name: "Ensure group {{ username }} exists"
   ansible.builtin.group:
     name: "{{ username }}"
     state: present
   when: enable_username_creation | default(False)
 
-- name: Check if the Ansible playbook is copied to the new user directory
+- name: "Check if the Ansible playbook is copied to the new user directory"
   ansible.builtin.stat:
     path: "/home/{{ username }}/ansible-wireguard"
   register: system_playbook_copied
 
-- name: Add the direnv hook to {{ username }}`s bashrc
+- name: "Add the direnv hook to {{ username }}'s bashrc"
   ansible.builtin.blockinfile:
-    path: /home/{{ username }}/.bashrc
+    path: "/home/{{ username }}/.bashrc"
     block: |
       eval "$(direnv hook bash)"
       direnv allow $HOME/ansible-wireguard
 
-- name: Handle user directory and playbook folder
+- name: "Handle user directory and playbook folder"
   when: not system_playbook_copied.stat.exists
   block:
-    - name: Copy the Ansible playbook to the new user
+    - name: "Copy the Ansible playbook to the new user"
       ansible.posix.synchronize:
         src: "/{{ lookup('env', 'HOME') }}/ansible-wireguard"
         dest: "/home/{{ username }}"
 
-    - name: Fix the user's venv copy
+    - name: "Fix the user's venv copy"
       tags:
-        - skip_ansible_lint # risky-pipe-shell confuses sed separators for pipes
+        - skip_ansible_lint
       changed_when: true
       ansible.builtin.shell:
         cmd: >-
           cd /home/{{ username }}/ansible-wireguard/.venv/bin &&
           sed -i "s|/root/ansible-wireguard|/home/{{ username }}/ansible-wireguard|g" *
 
-    - name: Chmod the ansible-wireguard directory
+    - name: "Chmod the ansible-wireguard directory"
       ansible.builtin.file:
         path: "/home/{{ username }}/ansible-wireguard"
         state: directory
-        mode: 0755
+        mode: "0755"
         owner: "{{ username }}"
         group: "{{ username }}"
-        recurse: yes
+        recurse: true
       when: not enable_username_creation | default(False)
 
-    - name: Chmod the user home directory
+    - name: "Chmod the user home directory"
       ansible.builtin.file:
         path: "/home/{{ username }}"
         state: directory
-        mode: 0755
+        mode: "0755"
         owner: "{{ username }}"
         group: "{{ username }}"
-        recurse: yes
+        recurse: true
       when: enable_username_creation | default(False)
