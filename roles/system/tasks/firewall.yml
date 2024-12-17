@@ -1,4 +1,22 @@
 ---
+- name: Install iptables packages (Debian/Ubuntu)
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - iptables
+    - iptables-persistent
+  when: not aws | default(false) and ansible_os_family == "Debian"
+
+- name: Install iptables packages (RedHat/CentOS)
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - iptables
+    - iptables-services
+  when: not aws | default(false) and ansible_os_family == "RedHat"
+
 - name: Template the iptables rules
   ansible.builtin.template:
     src: iptables.conf
