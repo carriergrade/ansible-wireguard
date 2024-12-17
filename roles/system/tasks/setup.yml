@@ -1,16 +1,31 @@
 ---
-- name: Update and upgrade apt packages
+- name: Update and upgrade packages (Debian/Ubuntu)
   ansible.builtin.apt:
     upgrade: yes
     autoremove: yes
     update_cache: yes
+  when: ansible_os_family == "Debian"
 
-- name: Install unattended upgrades package
+- name: Update and upgrade packages (RedHat/CentOS)
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Install unattended upgrades package (Debian/Ubuntu)
   ansible.builtin.package:
     name: unattended-upgrades
     state: present
+  when: ansible_os_family == "Debian"
 
-- name: Copy unattended-upgrades configuration files in place
+- name: Install dnf-automatic package (RedHat/CentOS)
+  ansible.builtin.package:
+    name: dnf-automatic
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Copy unattended-upgrades configuration files in place (Debian/Ubuntu)
   ansible.builtin.template:
     src: "{{ item }}.j2"
     dest: "/etc/apt/apt.conf.d/{{ item }}"
@@ -20,3 +35,11 @@
   with_items:
     - 10periodic
     - 50unattended-upgrades
+  when: ansible_os_family == "Debian"
+
+- name: Enable and start dnf-automatic timer (RedHat/CentOS)
+  ansible.builtin.systemd:
+    name: dnf-automatic.timer
+    enabled: yes
+    state: started
+  when: ansible_os_family == "RedHat"
