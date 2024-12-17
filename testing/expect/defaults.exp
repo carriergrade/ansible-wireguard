@@ -1,0 +1,2 @@
+set env(TERM) vt100
+spawn bash $::env(HOME)/ansible-wireguard/bootstrap.sh

@@ -1,0 +1,17 @@
+---
+wg_easy_version: "latest"
+
+# Default MTU settings
+wireguard_mtu: "{{ '1384' if aws | default(false) else '1420' }}"
+
+# AWS specific settings
+wireguard_aws_settings:
+  persistent_keepalive: 25
+  allowed_ips: "0.0.0.0/0, ::/0"
+  dns: "{{ ansible_default_ipv4.address }}"
+
+# Default port
+wireguard_port: 51820
+
+# Interface settings
+wireguard_interface_name: wg0

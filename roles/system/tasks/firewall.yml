@@ -1,0 +1,46 @@
+---
+- name: Template the iptables rules
+  ansible.builtin.template:
+    src: iptables.conf
+    dest: /etc/iptables.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: not aws | default(false)
+
+- name: Check the location of iptables-restore
+  register: "iptables_restore"
+  changed_when: no
+  failed_when: "iptables_restore.stdout | length == 0"
+  ansible.builtin.command:
+    cmd: "which iptables-restore"
+  when: not aws | default(false)
+
+- name: Template the iptables systemd service
+  ansible.builtin.template:
+    src: systemd/iptables.service.j2
+    dest: /etc/systemd/system/iptables.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: not aws | default(false)
+
+- name: Enable and start the iptables service
+  ansible.builtin.service:
+    name: iptables
+    state: started
+    enabled: yes
+  when: not aws | default(false)
+
+- name: Configure sysctl for AWS instances
+  ansible.builtin.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - name: net.ipv4.ip_forward
+      value: "1"
+    - name: net.ipv4.conf.all.src_valid_mark
+      value: "1"
+  when: aws | default(false)

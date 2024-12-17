@@ -1,0 +1,1 @@
+spawn bash $::env(HOME)/ansible-wireguard/bootstrap.sh

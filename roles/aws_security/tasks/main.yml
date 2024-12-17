@@ -1,0 +1,56 @@
+---
+- name: Ensure required Python packages are installed
+  ansible.builtin.pip:
+    name:
+      - boto3
+      - botocore
+    state: present
+  when: aws | default(false)
+
+- name: Get instance information
+  amazon.aws.ec2_metadata_facts:
+  when: aws | default(false)
+
+- name: Get security group information
+  amazon.aws.ec2_security_group_info:
+    region: "{{ ansible_ec2_placement_region }}"
+    filters:
+      instance-id: "{{ ansible_ec2_instance_id }}"
+  register: security_group_info
+  when: aws | default(false)
+
+- name: Configure security group rules
+  amazon.aws.ec2_security_group:
+    name: "{{ item.group_name }}"
+    region: "{{ ansible_ec2_placement_region }}"
+    description: Security group for WireGuard VPN server
+    rules:
+      - proto: tcp
+        ports:
+          - 22
+        cidr_ip: "{{ ssh_allowed_ip | default('0.0.0.0/0') }}"
+        rule_desc: "SSH access"
+      - proto: tcp
+        ports:
+          - 80
+          - 443
+        cidr_ip: "0.0.0.0/0"
+        rule_desc: "Web UI access"
+      - proto: udp
+        ports:
+          - 51820
+        cidr_ip: "0.0.0.0/0"
+        rule_desc: "WireGuard VPN"
+      - proto: udp
+        ports:
+          - 53
+        cidr_ip: "{{ vpc_cidr | default('0.0.0.0/0') }}"
+        rule_desc: "DNS (if enabled)"
+    rules_egress:
+      - proto: all
+        cidr_ip: "0.0.0.0/0"
+        rule_desc: "Allow all outbound traffic"
+  when: 
+    - aws | default(false)
+    - security_group_info.security_groups is defined
+  loop: "{{ security_group_info.security_groups }}"
