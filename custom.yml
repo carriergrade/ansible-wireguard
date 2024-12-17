@@ -1,5 +1,5 @@
 ---
-# Override Docker installation for Amazon Linux
+# Docker configuration for Amazon Linux
 docker_package: "docker"
 docker_package_state: present
 docker_install_compose: true
@@ -9,11 +9,22 @@ docker_repo_url: ""  # Disable default repo
 docker_apt_release_channel: 0  # Disable apt-specific settings
 docker_yum_repo_enable: false  # Disable default yum repo
 
-# Pre-install Docker using Amazon Linux's package
-pre_tasks_docker_packages:
-  - name: Install Docker on Amazon Linux
-    ansible.builtin.package:
-      name: 
-        - docker
-        - docker-compose
-      state: present
+# Required variables from inventory.yml
+username: "ec2-user"
+enable_username_creation: false  # Don't create user as it already exists
+enable_passwordless_sudo: yes
+user_shell: /bin/bash
+enable_ssh_keygen: no  # AWS already handles SSH keys
+
+# Docker configuration
+docker_users:
+  - "ec2-user"
+
+pip_install_packages:
+  - name: docker
+
+# Required for the playbook to work
+dns_nameservers: cloudflare
+enable_adguard_unbound_doh: false
+docker_dir: "/opt/docker"
+ssh_port: 22
