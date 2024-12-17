@@ -19,24 +19,8 @@ wget https://raw.githubusercontent.com/carriergrade/ansible-wireguard/main/boots
 * IPTables firewall with sane defaults and Fail2Ban
 * Automated and unattended upgrades
 * SSH hardening and public key pair generation (optional, you can also use your own keys)
-* E-mail notifications (using an external SMTP server, e.g. GMail)
+* E-mail notifications (using an external SMTP server)
 
 ## Requirements
 * A KVM-based VPS (or an AWS EC2 instance) with a dedicated IPv4 address
-* One of the supported Linux distros:
-  * Ubuntu Server 22.04
-  * Ubuntu Server 20.04
-  * Debian 11
-  * Debian 12
-  * ~~Rocky Linux 8~~ – not supported anymore
-  * ~~Rocky Linux 9~~ - not supported anymore
-
-## Known issues with VPS providers
-Normally, the script should work on any KVM-based VPS.
-
-However, some VPS providers use non-standard versions of Ubuntu/Debian OS images, which might lead to issues with the script.
-
-Additionally, some providers require additional firewall configuration in the server control panel to unblock the Wireguard port.
-
-* **AlexHost** – runs `apt-get dist-upgrade` after the VPS is provisioned, which results in a dpkg lock
-* **IONOS** – includes a firewall with default rules, which blocks Wireguard traffic. User needs to open the Wireguard port (51820/udp) in the control panel to make the VPN work.
+* Debian or RedHat based distros

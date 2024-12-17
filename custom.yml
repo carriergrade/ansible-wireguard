@@ -1,0 +1,19 @@
+---
+# Override Docker installation for Amazon Linux
+docker_package: "docker"
+docker_package_state: present
+docker_install_compose: true
+docker_compose_package: docker-compose
+docker_compose_package_state: present
+docker_repo_url: ""  # Disable default repo
+docker_apt_release_channel: 0  # Disable apt-specific settings
+docker_yum_repo_enable: false  # Disable default yum repo
+
+# Pre-install Docker using Amazon Linux's package
+pre_tasks_docker_packages:
+  - name: Install Docker on Amazon Linux
+    ansible.builtin.package:
+      name: 
+        - docker
+        - docker-compose
+      state: present
